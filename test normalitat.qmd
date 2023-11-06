@@ -1,0 +1,69 @@
+---
+title: "Estudi de la normalitat del nostre DS"
+format: html
+editor: visual
+---
+
+En primer lloc, carreguem el nostre DS:
+
+```{r}
+library(ggplot2)
+library(tibble)
+library(dplyr)
+
+subconjunt <- diamonds %>% 
+  sample_n(nrow(diamonds)/10)
+subconjunt
+```
+
+Recordem que les variables del nostre dataset són
+
+-   *carat*: El pes del diamant en quirats.
+
+-   *cut*: La qualitat del tall del diamant, que pot tenir els nivells següents: "Fair", "Good", "Very Good", "Premium" i "Ideal".
+
+-   *color*: El color del diamant, que es codifica en lletres de la "J" (pitjor) a la "D" (millor).
+
+-   *clarity*: La claredat del diamant, que pot tenir els nivells següents: "I1" (la pitjor) fins a "IF" (la millor).
+
+-   *depth*: La profunditat total del diamant com a percentatge del seu diàmetre.
+
+-   *table*: L'amplada de la part superior del diamant expressat com un percentatge del diàmetre total.
+
+-   *price*: El preu del diamant en dòlars nord-americans.
+
+-   *x*: La longitud en mil·límetres.
+
+-   *i*: L'amplada en mil·límetres.
+
+-   *z*: La profunditat en mil·límetres.
+
+Aquestes variables s'utilitzen habitualment en anàlisi de diamants i poden ser útils per a l'avaluació de qualitat i preus de diamants en funció de les seves característiques.
+
+Vegem com són aquestes variables:
+
+```{r, echo = FALSE}
+summary(diamonds)
+```
+
+Estudiem la normalitat de les variables quantitatives:
+
+```{r}
+diamants <- diamonds
+quantitatives <- diamants %>% 
+  select(carat,depth,table,price,x,y,z)
+mitjanes <- colMeans(quantitatives)
+covariances <- cov(quantitatives)
+dist <- apply(quantitatives, MARGIN = 1, function(quantitatives)
+  + t(quantitatives - mitjanes) %*% solve(covariances) %*% (quantitatives - mitjanes))
+```
+
+```{r}
+plot(qchisq((1:nrow(quantitatives) - 1/2) / nrow(quantitatives), df = 7), sort(dist),
+xlab = expression(paste("Cuantiles de la ", chi[3]^2)),
+ylab="Distancias ordenadas")
+abline(a=0,b=1)
+```
+
+```{}
+```
