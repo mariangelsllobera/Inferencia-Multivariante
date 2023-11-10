@@ -1,18 +1,22 @@
 ---
 title: "Estudi de la normalitat del nostre DS"
+author: "Alba Linares i Maria Àngels Llobera"
 format: html
 editor: visual
 ---
 
-En primer lloc, carreguem el nostre DS:
+# Presentació de les nostres dades:
 
-```{r}
+En primer lloc, el repositori on trobem tota la informació d'aquest projecte és \<https://github.com/mariangelsllobera/Inferencia-Multivariante.git\>
+
+Ara, carreguem el nostre DS i farem una selecció aleatòria de 5000 observacions, per a després poder realitzar el test de Shapiro-Wilk i poder detectar normalitat multivariant:
+
+```{r, echo=FALSE}
 library(ggplot2)
 library(tibble)
 library(dplyr)
 
-subconjunt <- diamonds %>% 
-  sample_n(nrow(diamonds)/10)
+subconjunt <- diamonds[sample(nrow(diamonds), 5000, replace = FALSE),] #seleccionarem 5000 mostres aleatòries atès que el df original té massa observacions per a després poder realitzar el test de shapiro (). Notem que tal mostreig el farem sense reemplaçament
 subconjunt
 ```
 
@@ -43,27 +47,119 @@ Aquestes variables s'utilitzen habitualment en anàlisi de diamants i poden ser 
 Vegem com són aquestes variables:
 
 ```{r, echo = FALSE}
-summary(diamonds)
+summary(subconjunt)
 ```
+
+# Primer estudi de la multinormalitat del nostre conjunt de dades
 
 Estudiem la normalitat de les variables quantitatives:
 
-```{r}
-diamants <- diamonds
+```{r, echo = FALSE}
+diamants <- subconjunt #feim una còpia del df per a treballar amb ella
+
+# seleccionam només les variables quantitatives:
 quantitatives <- diamants %>% 
   select(carat,depth,table,price,x,y,z)
+
+# en calculam el vector esperat, covariància mostral, dist.:
 mitjanes <- colMeans(quantitatives)
+mitjanes
 covariances <- cov(quantitatives)
+covariances
 dist <- apply(quantitatives, MARGIN = 1, function(quantitatives)
   + t(quantitatives - mitjanes) %*% solve(covariances) %*% (quantitatives - mitjanes))
 ```
 
-```{r}
+Vegem si la distribució de les nostres dades segueix una distribució multinormal:
+
+```{r, echo = FALSE}
+
 plot(qchisq((1:nrow(quantitatives) - 1/2) / nrow(quantitatives), df = 7), sort(dist),
-xlab = expression(paste("Cuantiles de la ", chi[3]^2)),
-ylab="Distancias ordenadas")
+xlab = expression(paste("Quantils de la ", chi[3]^2)),
+ylab="Distàncies ordenades")
 abline(a=0,b=1)
 ```
 
-```{}
+A simple vista, sembla que no. Ara, farem un test a R per a comprovar la nostra intuïció:
+
+```{r, echo= FALSE}
+library(mvnormtest)
+# farem el test de Shapiro-Wilk
+x=t(quantitatives)
+mshapiro.test(x)
 ```
+
+El p-valor de Shapiro-Wilk menor que 0.05 indica que es no compleix la hipòtesi de normalitat multivariant: una o més variables no es distribueixen normalment.
+
+# Estudi de la normalitat variable a variable i darrer intent de trobar multinormalitat:
+
+Estudiem variable a variable:
+
+-   carat
+
+```{r}
+library(car)
+x=t(quantitatives)
+qqPlot(x[,1])
+
+```
+
+-   depth
+
+```{r}
+qqPlot(x[,2])
+```
+
+-   table
+
+```{r}
+qqPlot(x[,3])
+```
+
+-   price
+
+```{r}
+qqPlot(x[,4])
+```
+
+-   x
+
+```{r}
+qqPlot(x[,5])
+```
+
+-   y
+
+```{r}
+qqPlot(x[,6])
+```
+
+-   z
+
+```{r}
+qqPlot(x[,7])
+```
+
+Notem que cap variable dibuixa al QQPlot una línea propera a una diagonal, per tant, no hi ha indicis que siguin normals. Ara bé, moltes variables trobem que les observacions s'alineen en una línea recta, el que ens indica que els quantils observats s'ajusten bé a la distribució teòrica.
+
+Vegem si hi ha subconjunts de variables que sí segueixen una distribució normal:
+
+-   eliminam del nostre subconjunt de variables quantitatives *depth* i *table*, les quals els punts no es troben sobre una recta. De totes maneres, vegem que les nostres variables segueixen sense seguir una distribució multinormal
+
+```{r}
+subgrup1 <- quantitatives %>%    
+  select(carat,price,x,y,z) 
+
+v1 = t(subgrup1) 
+mshapiro.test(v1)
+```
+
+-   *table* i *depth*: són les que els seus QQ-plots s'acosten més a una diagonal. De totes maneres, no segueix una multinormal tampoc:
+
+    ```{r}
+    subgrup2 <- quantitatives %>% 
+      select(table,depth)
+
+    v2 = t(subgrup2)
+    mshapiro.test(v2)
+    ```
