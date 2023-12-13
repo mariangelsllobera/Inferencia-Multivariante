@@ -1,0 +1,175 @@
+---
+title: "Clustering i ACP"
+author: "Alba Linares y Maria Àngels"
+format: html
+editor: visual
+---
+
+## Presentació de les Dades:
+En primer lloc, el repositori on trobem tota la informació d'aquest projecte és <https://github.com/mariangelsllobera/Inferencia-Multivariante.git>
+
+Ara, carreguem el nostre DS, basat en observacions de diamants:
+```{r, echo=FALSE}
+library(ggplot2)
+library(tibble)
+library(dplyr)
+
+diamants = diamonds
+head(diamants)
+```
+
+La pregunta què volem respondre amb aquest conjunt de dades és quin
+
+## Anàlisi exploratòria de les dades:
+Facem un petit resum i anàlisi exploratòria de les nostres dades. Notem que ja estan en format tidy: tenim 53940 observacions de 10 variables.
+
+Recordem que les variables del nostre dataset són
+
+-   *carat*: El pes del diamant en quirats. Un quilate és una unitat de mesura de pes utilitzada en gemologia i joieria per mesurar diamants i altres pedres precioses. Un quilate equival a 0.2 grams o 200 mil·ligrams. És important tenir en compte que el pes d'un diamant no és l'únic factor que determina el seu valor; altres factors com la claredat, el color i el tall també són fonamentals.
+
+-   *cut*: La qualitat del tall del diamant, que pot tenir els nivells següents: "Fair", "Good", "Very Good", "Premium" i "Ideal".
+
+-   *color*: El color del diamant, que es codifica en lletres de la "J" (pitjor) a la "D" (millor).
+
+-   *clarity*: La claredat del diamant, que pot tenir els nivells següents: "I1" (la pitjor) fins a "IF" (la millor).
+
+-   *depth*: La profunditat total del diamant com a percentatge del seu diàmetre.
+
+-   *table*: L'amplada de la part superior del diamant expressat com un percentatge del diàmetre total.
+
+-   *price*: El preu del diamant en dòlars nord-americans.
+
+-   *x*: La longitud en mil·límetres.
+
+-   *i*: L'amplada en mil·límetres.
+
+-   *z*: La profunditat en mil·límetres.
+
+Aquestes variables s'utilitzen habitualment en anàlisi de diamants i poden ser útils per a l'avaluació de qualitat i preus de diamants en funció de les seves característiques.
+
+Vegem com són aquestes variables:
+
+```{r, echo = FALSE}
+summary(diamants)
+```
+Llavors, tenim 7 variables quantitatives: carat, depth, table, price, x, y, z.
+A més, trobem una variable qualitativa: color, amb 7 possibles nivells; i una d'ordinal: cut.
+```{r}
+diamants %>% 
+  ggplot(aes(x = cut)) +
+  geom_bar(fill="blue") + 
+  labs(x="Qualitat del tall del diamant", y="Nombre de diamants") +
+  theme_bw() +
+  theme(axis.text = element_text(size=20),
+        axis.title = element_text(size=20, face = "bold")) 
+```
+La majoria de diamants del nostre DS són de qualitat alta.
+```{r}
+diamants %>% 
+  ggplot(aes(x = color)) + 
+  geom_bar(fill='pink') +
+  labs(x="Color del diamant", y="Nombre de diamants") +
+  theme_bw() +
+  theme(axis.text = element_text(size=20),
+        axis.title = element_text(size=20, face = "bold"))
+```
+Respecte al color, vegem que hi ha més diversitat, però el color J és el que manco unitats té.
+
+
+Vegem la distribució de les dades en funcio del color i de cut mitjançant un diagrama de mosaic.
+
+```{r,echo=FALSE}
+
+library(vcd)
+
+a<- diamants %>%
+
+select(color,cut) %>%
+
+na.omit()
+
+a2<- table(a)
+
+mosaicplot(a2,shade=TRUE, main="")
+
+```
+
+```{r} 
+#pesa massa
+#library(GGally)
+#library(gapminder)
+
+#diamants %>% 
+#  select(-color) %>% 
+#  ggpairs(.)
+```
+
+
+
+Estudiem la distribució dels diamants en funció del preu:
+```{r}
+ggplot(data=diamonds) + 
+  geom_histogram(binwidth=500, aes(x=price)) + 
+  ggtitle("Distribució dels preus dels diamants") + 
+  xlab("Preu dels diamants") + 
+  ylab("Freqüència") + 
+  theme_minimal()
+```
+
+Aquesta és una distribució de cua llarga, amb una concentració elevada d'observacions per sota dels 5.000. 
+```{r}
+ggplot(diamonds, aes(x = carat, y = price, color = color)) +
+  geom_point() +
+  labs(title = "Scatterplot of Diamond Carat vs Price",
+       x = "Carat",
+       y = "Price")
+```
+Sembla que, indistintivament del color del diamant, el preu tendeix a augmentar quan carat creix.
+```{r}
+ggplot(diamonds, aes(x = carat, fill = color)) +
+  geom_histogram(binwidth = 0.5, position = "identity", alpha = 0.7) +
+  labs(title = "Histogram of Diamond Carat vs Frequency",
+       x = "Carat",
+       y = "Frequency") 
+```
+La distribució és semblant a la dels preus (de cua llarga).
+
+```{r}
+mean_values <- diamonds %>%
+  group_by(cut) %>%
+  summarize(mean_carat = mean(carat))
+
+ggplot(diamonds, aes(x = cut, y = carat, fill = cut)) +
+  geom_violin(alpha = 0.7) +
+  geom_point(data = mean_values, aes(x = cut, y = mean_carat),
+             color = "black", size = 3, shape = 19) +  
+  labs(title = "Violin Plot of Diamond Cut vs Carat",
+       x = "Diamond Cut",
+       y = "Carat") +
+  scale_fill_manual(values = c("#1b9e77", "#d95f02", "#7570b3", "#e7298a", "#66a61e")) +  # Custom color palette
+  theme_minimal()
+```
+Les mitjanes de les carat són molt semblants, si les comparam entre qualitats del tall. Ara bé, les distribucions són prou diferents.
+
+
+Vegem quina correlació hi ha entre les variables quantitatives
+```{r,echo=FALSE}
+library(ggcorrplot)
+
+diamants %>%
+
+na.omit(.) %>%
+
+select(carat, depth, table, price, x, y, z) %>%
+
+cor(.) %>%
+
+ggcorrplot(., hc.order = TRUE, type = "lower", colors = c("#6D9EC1","yellow", "#E46726"))
+
+```
+Notem que la variable carat (el pes del diamant amb quilats) està molt correlacionada amb les dimensions d'aquest (x,y i z), la qual cosa té sentit. També estan molt correlacionades positivament les variables x,y,z, carat i preu.
+
+També vegem que les variables depth i table tenen una mica de correlació negativa.
+
+## Anàlisi de Clustering
+Ara sí, intentem agrupar les nostres observacions.
