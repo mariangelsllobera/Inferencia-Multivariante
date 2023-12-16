@@ -6,21 +6,22 @@ editor: visual
 ---
 
 ## Presentació de les Dades:
+
 En primer lloc, el repositori on trobem tota la informació d'aquest projecte és <https://github.com/mariangelsllobera/Inferencia-Multivariante.git>
 
 Ara, carreguem el nostre DS, basat en observacions de diamants:
+
 ```{r, echo=FALSE}
 library(ggplot2)
 library(tibble)
 library(dplyr)
-
-diamants = diamonds
-head(diamants)
+head(diamonds)
 ```
 
 La pregunta què volem respondre amb aquest conjunt de dades és quin
 
 ## Anàlisi exploratòria de les dades:
+
 Facem un petit resum i anàlisi exploratòria de les nostres dades. Notem que ja estan en format tidy: tenim 53940 observacions de 10 variables.
 
 Recordem que les variables del nostre dataset són
@@ -41,7 +42,7 @@ Recordem que les variables del nostre dataset són
 
 -   *x*: La longitud en mil·límetres.
 
--   *i*: L'amplada en mil·límetres.
+-   *y*: L'amplada en mil·límetres.
 
 -   *z*: La profunditat en mil·límetres.
 
@@ -50,10 +51,18 @@ Aquestes variables s'utilitzen habitualment en anàlisi de diamants i poden ser 
 Vegem com són aquestes variables:
 
 ```{r, echo = FALSE}
-summary(diamants)
+summary(diamonds)
+dim(diamonds)
 ```
-Llavors, tenim 7 variables quantitatives: carat, depth, table, price, x, y, z.
-A més, trobem una variable qualitativa: color, amb 7 possibles nivells; i una d'ordinal: cut.
+Com tenim moltes observacions considerarem un subconjunt del dataset de forma aleatòria.
+```{r}
+diamants <- diamonds[sample(nrow(diamonds), 300, replace = FALSE),] #seleccionarem 700 mostres aleatòries atès que el df original té massa observacions per a després poder realitzar els clusterings
+dim(diamants)
+```
+
+
+Llavors, tenim 7 variables quantitatives: carat, depth, table, price, x, y, z. A més, trobem una variable qualitativa: color, amb 7 possibles nivells; i una d'ordinal: cut.
+
 ```{r}
 diamants %>% 
   ggplot(aes(x = cut)) +
@@ -63,7 +72,9 @@ diamants %>%
   theme(axis.text = element_text(size=20),
         axis.title = element_text(size=20, face = "bold")) 
 ```
+
 La majoria de diamants del nostre DS són de qualitat alta.
+
 ```{r}
 diamants %>% 
   ggplot(aes(x = color)) + 
@@ -73,8 +84,8 @@ diamants %>%
   theme(axis.text = element_text(size=20),
         axis.title = element_text(size=20, face = "bold"))
 ```
-Respecte al color, vegem que hi ha més diversitat, però el color J és el que manco unitats té.
 
+Respecte al color, vegem que hi ha més diversitat, però el color J és el que manco unitats té.
 
 Vegem la distribució de les dades en funcio del color i de cut mitjançant un diagrama de mosaic.
 
@@ -94,7 +105,7 @@ mosaicplot(a2,shade=TRUE, main="")
 
 ```
 
-```{r} 
+```{r}
 #pesa massa
 #library(GGally)
 #library(gapminder)
@@ -104,9 +115,8 @@ mosaicplot(a2,shade=TRUE, main="")
 #  ggpairs(.)
 ```
 
-
-
 Estudiem la distribució dels diamants en funció del preu:
+
 ```{r}
 ggplot(data=diamonds) + 
   geom_histogram(binwidth=500, aes(x=price)) + 
@@ -116,7 +126,8 @@ ggplot(data=diamonds) +
   theme_minimal()
 ```
 
-Aquesta és una distribució de cua llarga, amb una concentració elevada d'observacions per sota dels 5.000. 
+Aquesta és una distribució de cua llarga, amb una concentració elevada d'observacions per sota dels 5.000.
+
 ```{r}
 ggplot(diamonds, aes(x = carat, y = price, color = color)) +
   geom_point() +
@@ -124,7 +135,9 @@ ggplot(diamonds, aes(x = carat, y = price, color = color)) +
        x = "Carat",
        y = "Price")
 ```
+
 Sembla que, indistintivament del color del diamant, el preu tendeix a augmentar quan carat creix.
+
 ```{r}
 ggplot(diamonds, aes(x = carat, fill = color)) +
   geom_histogram(binwidth = 0.5, position = "identity", alpha = 0.7) +
@@ -132,6 +145,7 @@ ggplot(diamonds, aes(x = carat, fill = color)) +
        x = "Carat",
        y = "Frequency") 
 ```
+
 La distribució és semblant a la dels preus (de cua llarga).
 
 ```{r}
@@ -149,10 +163,11 @@ ggplot(diamonds, aes(x = cut, y = carat, fill = cut)) +
   scale_fill_manual(values = c("#1b9e77", "#d95f02", "#7570b3", "#e7298a", "#66a61e")) +  # Custom color palette
   theme_minimal()
 ```
+
 Les mitjanes de les carat són molt semblants, si les comparam entre qualitats del tall. Ara bé, les distribucions són prou diferents.
 
-
 Vegem quina correlació hi ha entre les variables quantitatives
+
 ```{r,echo=FALSE}
 library(ggcorrplot)
 
@@ -160,16 +175,97 @@ diamants %>%
 
 na.omit(.) %>%
 
-select(carat, depth, table, price, x, y, z) %>%
+select(carat, depth, price) %>%
 
 cor(.) %>%
 
 ggcorrplot(., hc.order = TRUE, type = "lower", colors = c("#6D9EC1","yellow", "#E46726"))
 
 ```
+
 Notem que la variable carat (el pes del diamant amb quilats) està molt correlacionada amb les dimensions d'aquest (x,y i z), la qual cosa té sentit. També estan molt correlacionades positivament les variables x,y,z, carat i preu.
 
 També vegem que les variables depth i table tenen una mica de correlació negativa.
 
 ## Anàlisi de Clustering
-Ara sí, intentem agrupar les nostres observacions.
+
+El nostre objectiu es predir el rang de preu que tenen els diamants mitjançant l'informació que ens proporcionen les altres variables.
+
+Primer, cream una nova variable "price_grups" que emagatzema els preus dels diamants per rangs.
+```{r}
+
+diamants$price_grup <- cut(diamants$price, breaks = c(0,1000,2500, 5000, 10000, 15000, 20000, Inf),
+                             labels = c("0-1000", "1000-2500","25001-5000", "5001-10000", "10001-15000", "15001-20000", "20001+"))
+
+# Visualizem la distribució dels diamants en cada rang de preus
+ggplot(diamants, aes(x = price_grup, fill = price_grup)) +
+  geom_bar() +
+  labs(title = "Distribució dels diamants en diferents rangs de preus",
+       x = "Rang de preus",
+       y = "nombre de diamants")
+```
+
+
+```{r}
+table(diamants$price_grup) 
+```
+Com hem vist abans al summary els valors de la variable "carat" varien entre 0.23 i 2.3 i té mitjana 0.8161 i la variable "depth" varia entre 57.80 i 67.20 i té mitjana 61.84. 
+
+Aleshores, com la magnitud entre variables difereix de forma notable entre variables és convenient escalarles abans de fer el clustering.
+```{r}
+#primer seleccionam nomes les variables que ens interessen pel clustering
+dades <- diamants %>% 
+  na.omit(.) %>%
+  select(carat)
+dades <- scale(dades, center = TRUE, scale = TRUE)
+```
+
+Una forma senzilla d'estimar el nombre K òptim de clústers quan no es disposa d'informació addicional en la qual basar-se és aplicar l'algorisme per a un rang de valors de K, identificant aquell a partir del qual la reducció en la suma total de variància intraclúster deixa de ser substancial. Usarem la funció fviz_nbclust() que automatitza aquest procés. En aquest cas, donat que es sospita de la presència d'outliers, s'emplea la distància de Manhattan com a mesura de similitud.
+
+Vegem-ho
+```{r}
+library(cluster) 
+library(factoextra) 
+
+fviz_nbclust(x = dades, FUNcluster = pam, method = "wss", 
+diss <- dist(dades, method = "manhattan")) 
+```
+Notem que a partir del cluster 4 la reducció en la suma total de cuadrats interns s'estabilitza. Per tant agafam k=4.
+
+
+```{r}
+set.seed(123) 
+pam_clusters <- pam(x = dades, k = 4, metric = "manhattan") 
+pam_clusters 
+```
+
+
+```{r}
+#ARREGLAR QUE ES GRAFICS NO ES VEUEN
+ 
+hc_completo <- hclust(d = diss, method = "complete") 
+hc_average  <- hclust(d = diss, method = "average") 
+hc_single   <- hclust(d = diss, method = "single") 
+par(mfrow = c(3, 1)) 
+plot(hc_completo, labels = diamants$price_grup, ylab = "", xlab = "", sub = "", 
+main = "Linkage completo", cex = 0.8) 
+plot(hc_average, labels = diamants$price_grup, ylab = "", xlab = "", sub = "", 
+main = "Linkage average", cex = 0.8) 
+plot(hc_single, labels = diamants$price_grup, ylab = "", xlab = "", sub = "", 
+main = "Linkage single", cex = 0.8)
+```
+```{r}
+clusters <- cutree(tree = hc_completo, k = 4) 
+table(clusters, diamants$price_grup, dnn = list("clusters", "preu")) 
+```
+
+Tots els diamants amb preus al rang 0-1000  cauen en el clúster 1. Els que es troben en els rang 2501-5000 cauen en el cluster 2 manco un petita quantitat(4 diamants de 71).,,,,
+
+
+
+
+
+
+
+
+
