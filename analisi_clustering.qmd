@@ -55,11 +55,26 @@ summary(diamonds)
 dim(diamonds)
 ```
 
-Com tenim moltes observacions considerarem un subconjunt del dataset de forma aleatòria.
+Com tenim moltes observacions considerarem un subconjunt del dataset de forma aleatòria. Seleccionarem 700 mostres aleatòries atès que el df original té massa observacions per a després poder realitzar els clusterings.
 
 ```{r}
-diamants <- diamonds[sample(nrow(diamonds), 700, replace = FALSE),] #seleccionarem 700 mostres aleatòries atès que el df original té massa observacions per a després poder realitzar els clusterings
-#dim(diamants)
+set.seed(123)
+diamants <-  diamonds[sample(nrow(diamonds), 500, replace = FALSE),]
+diamants
+```
+
+Cream una nova variable "price_grups" que emagatzema els preus dels diamants per rangs.
+
+```{r}
+diamants$price_grup <- cut(diamants$price, breaks = c(0,1000,2500, 5000, 10000, 15000, 20000, Inf),
+                             labels = c("0-1000", "1000-2500","25001-5000", "5001-10000", "10001-15000", "15001-20000", "20001+"))
+
+# Visualizem la distribució dels diamants en cada rang de preus
+ggplot(diamants, aes(x = price_grup, fill = price_grup)) +
+  geom_bar() +
+  labs(title = "Distribució dels diamants en diferents rangs de preus",
+       x = "Rang de preus",
+       y = "nombre de diamants")
 ```
 
 Llavors, tenim 7 variables quantitatives: carat, depth, table, price, x, y, z. A més, trobem una variable qualitativa: color, amb 7 possibles nivells; i una d'ordinal: cut.
@@ -109,7 +124,7 @@ mosaicplot(a2,shade=TRUE, main="")
 Estudiem la distribució dels diamants en funció del preu:
 
 ```{r}
-ggplot(data=diamonds) + 
+ggplot(data=diamants) + 
   geom_histogram(binwidth=500, aes(x=price)) + 
   ggtitle("Distribució dels preus dels diamants") + 
   xlab("Preu dels diamants") + 
@@ -120,7 +135,7 @@ ggplot(data=diamonds) +
 Aquesta és una distribució de cua llarga, amb una concentració elevada d'observacions per sota dels 5.000.
 
 ```{r}
-ggplot(diamonds, aes(x = carat, y = price, color = color)) +
+ggplot(diamants, aes(x = carat, y = price, color = color)) +
   geom_point() +
   labs(title = "Scatterplot of Diamond Carat vs Price",
        x = "Carat",
@@ -130,7 +145,7 @@ ggplot(diamonds, aes(x = carat, y = price, color = color)) +
 Sembla que, indistintivament del color del diamant, el preu tendeix a augmentar quan carat creix.
 
 ```{r}
-ggplot(diamonds, aes(x = carat, fill = color)) +
+ggplot(diamants, aes(x = carat, fill = color)) +
   geom_histogram(binwidth = 0.5, position = "identity", alpha = 0.7) +
   labs(title = "Histogram of Diamond Carat vs Frequency",
        x = "Carat",
@@ -140,11 +155,11 @@ ggplot(diamonds, aes(x = carat, fill = color)) +
 La distribució és semblant a la dels preus (de cua llarga).
 
 ```{r}
-mean_values <- diamonds %>%
+mean_values <- diamants %>%
   group_by(cut) %>%
   summarize(mean_carat = mean(carat))
 
-ggplot(diamonds, aes(x = cut, y = carat, fill = cut)) +
+ggplot(diamants, aes(x = cut, y = carat, fill = cut)) +
   geom_violin(alpha = 0.7) +
   geom_point(data = mean_values, aes(x = cut, y = mean_carat),
              color = "black", size = 3, shape = 19) +  
@@ -166,7 +181,7 @@ diamants %>%
 
 na.omit(.) %>%
 
-select(carat, depth, price) %>%
+select(carat, depth, price,x,y,z) %>%
 
 cor(.) %>%
 
@@ -180,127 +195,60 @@ També vegem que les variables depth i table tenen una mica de correlació negat
 
 ## Anàlisi de Clustering
 
-El nostre objectiu es predir el rang de preu que tenen els diamants mitjançant l'informació que ens proporcionen les altres variables.
+### Clúster particional usant l'algorisme de Lloyd
 
-### Preparació de les dades per al posterior procés de clustering
-Primer, cream una nova variable "price_grups" que emagatzema els preus dels diamants per rangs.
+Primer farem alguns canvis en el data set per poder treballar amb ell. Mutam les variables "cut" i "clarity" a variables del tipus integer.
 
 ```{r}
-diamants$price_grup <- cut(diamants$price, breaks = c(0,1000,2500, 5000, 10000, 15000, 20000, Inf),
-                             labels = c("0-1000", "1000-2500","25001-5000", "5001-10000", "10001-15000", "15001-20000", "20001+"))
+diamants_subset <-  diamants%>% 
+  mutate(cut = as.integer(cut), clarity = as.integer(clarity)) %>% 
+  select(-color,-price_grup)%>% 
+   na.omit()
+```
 
-# Visualizem la distribució dels diamants en cada rang de preus
-ggplot(diamants, aes(x = price_grup, fill = price_grup)) +
-  geom_bar() +
-  labs(title = "Distribució dels diamants en diferents rangs de preus",
-       x = "Rang de preus",
-       y = "nombre de diamants")
+#### Anàlisi de les components principals
+
+```{r}
+library(ggplot2)
+library("factoextra")
+dades.acp <- prcomp(diamants_subset, scale = TRUE)
 ```
 
 ```{r}
-table(diamants$price_grup) 
+lambdas=get_eigenvalue(dades.acp)
+lambdas
 ```
 
-Com hem vist abans al summary els valors de la variable "carat" varien entre 0.23 i 2.3 i té mitjana 0.8161 i la variable "depth" varia entre 57.80 i 67.20 i té mitjana 61.84.
-
-Aleshores, com la magnitud entre variables difereix de forma notable entre variables és convenient escalarles abans de fer el clustering.
+Notem que les dues primeras components suman més del 72% de la variança.
 
 ```{r}
-#primer seleccionam nomes les variables que ens interessen pel clustering
-dades <- diamants %>% 
-  na.omit(.) %>%
-  select(carat)
-dades <- scale(dades, center = TRUE, scale = TRUE)
+dades.acp$rotation
 ```
 
+Les variables "carat","price","x", "y" i  "z" tenen molt de pes a la primera component principal. Notem que a la segona component té molt de pes la variable "cut".
+
+#### Estimació del nombre K òptim
 
 Una forma senzilla d'estimar el nombre K òptim de clústers quan no es disposa d'informació addicional en la qual basar-se és aplicar l'algorisme per a un rang de valors de K, identificant aquell a partir del qual la reducció en la suma total de variància intraclúster deixa de ser substancial.
 
 Usarem la funció fviz_nbclust() que automatitza aquest procés. En aquest cas, donat que es sospita de la presència d'outliers, s'emplea la distància de Manhattan com a mesura de similitud.
 
-Vegem-ho
-
-```{r}
-library(cluster) 
-library(factoextra) 
-
-fviz_nbclust(x = dades, FUNcluster = pam, method = "wss", 
-diss <- dist(dades, method = "manhattan")) 
-```
-
-Notem que a partir del cluster 4 la reducció en la suma total de cuadrats interns s'estabilitza. Per tant, agafam k=4.
-
-### Clúster usant l'algorisme PAM
-
-```{r}
-set.seed(1234) 
-pam_clusters <- pam(x = dades, k = 4, metric = "manhattan") 
-pam_clusters 
-```
-
-```{r}
-#ARREGLAR QUE ES GRAFICS NO ES VEUEN
-hc_completo <- hclust(d = diss, method = "complete") 
-hc_average  <- hclust(d = diss, method = "average") 
-hc_single   <- hclust(d = diss, method = "single") 
-
-#par(mfrow = c(3, 1)) 
-#plot(hc_completo, labels = diamants$price_grup, ylab = "", xlab = "", sub = "",
-#main = "Linkage completo", cex = 0.8) 
-#plot(hc_average, labels = diamants$price_grup, ylab = "", xlab = "", sub = "", 
-#main = "Linkage average", cex = 0.8) 
-#plot(hc_single, labels = diamants$price_grup, ylab = "", xlab = "", sub = "", 
-#main = "Linkage single", cex = 0.8)
-
-fviz_dend(x = hc_completo, k = 4, cex = 0.6,
-              main="Linkage complet") +
- geom_hline(yintercept = 5.5, linetype = "dashed")
-fviz_dend(x = hc_average, k = 4, cex = 0.6,
-              main="Linkage mitjà") +
- geom_hline(yintercept = 5.5, linetype = "dashed")
-fviz_dend(x = hc_single, k = 4, cex = 0.6, 
-  main="Linkage single") +
- geom_hline(yintercept = 5.5, linetype = "dashed")
-```
-
-```{r}
-clusters <- cutree(tree = hc_completo, k = 4) 
-table(clusters, diamants$price_grup, dnn = list("clusters", "preu")) 
-```
-
-Tots els diamants amb preus al rang 0-1000 cauen en el clúster 1. Els que es troben en els rang 2501-5000 cauen en el cluster 2 manco un petita quantitat (4 diamants de 71).
-
-```{r}
-#fviz_cluster(object = list(data = dades, cluster = cutree(hc_completo, k = 4)),
- #ellipse.type = "convex",
- #repel = TRUE,
- #show.clust.cent = FALSE) +
-#theme_bw()
-```
-
-
-# PROVES MALL
-## Opció 1: clúster particional usant l'algorisme de Lloyd
-
 ```{r}
 library(factoextra)
-diamants_subset =  diamonds[sample(nrow(diamonds), 500, replace = FALSE),] %>% 
-  mutate(cut = as.integer(cut), clarity = as.integer(clarity)) %>% 
-  select(-color,-x,-y,-z)%>% 
-   na.omit() 
-
-diamants_subset  %>% 
-   scale()
 
 fviz_nbclust(diamants_subset, kmeans, method = "wss")
 ```
+
 Pel mètode del colze, concloem que el nombre òptim de clusters és k=2.
 
+#### K-means clustering
+
 ```{r}
-set.seed(454)
+set.seed(123)
+diamants_scale <- scale(diamants_subset, center = TRUE, scale = TRUE)
 diamants_cluster <- kmeans(diamants_subset, centers = 2, algorithm = "Lloyd")
 diamants_subset$cluster <- diamants_cluster$cluster
-fviz_cluster(diamants_cluster, data = diamants_subset)
+fviz_cluster(diamants_cluster, data = diamants_subset,geom = "point")
 ```
 
 ```{r}
@@ -308,37 +256,81 @@ diamants_subset %>%
   group_by(cluster) %>% 
   summarise_all(mean)
 ```
+
 Vegem que la diferència principal dels clusters rau a carat i en el preu.
 
-## Opció 2: clúster jeràrquic aglomeratiu 
+#### K-medoids clustering(PAM)
 
-Vegem què passa si no especifiquem el nombre de clusters a priori
+Facem ara el clustering fent us del mètode K-medoids(PAM). K-medoids és un mètode de clustering molt semblant a K-means pel fet que tots dos agrupen les observacions en K clusters, on K és un valor preestablert per l'analista. La diferència rau en què en K-medoids cada cluster està representat per una observació present en el cluster, mentre que en K-means cada cluster està representat pel seu centroid, que correspon al promig de totes les observacions del cluster, però sense cap en particular.
+
 ```{r}
-diamants_subset <- diamonds[sample(nrow(diamonds), 500, replace = FALSE),] %>% 
-  mutate(color = as.integer(color), cut = as.integer(cut), clarity = as.integer(clarity))
+set.seed(123)
+library(cluster)
+pam_clusters <- pam(x = diamants_subset, k = 2, metric = "manhattan") 
+pam_clusters 
 ```
 
 ```{r}
-diamants_subset %>% mutate(price_group = cut(diamants_subset$price, breaks = c(0,1000,2500, 5000, 10000, 15000, 20000, Inf),labels = c("0-1000", "1000-2500","25001-5000", "5001-10000", "10001-15000", "15001-20000", "20001+")))
+medoids <- prcomp(diamants_subset)$x 
+# Es seleccionen únicament las projeccions de les observacions que son medoids 
+medoids <- medoids[rownames(pam_clusters$medoids), c("PC1", "PC2")] 
+medoids <- as.data.frame(medoids) 
+colnames(medoids) <- c("x", "y")
+fviz_cluster(object = pam_clusters, data = diamants_subset, ellipse.type = "t",  geom = "point", 
+repel = F) + 
+theme_bw() + 
+geom_point(data = medoids, color = "black", size = 2) + 
+theme(legend.position = "none") 
 ```
 
+Notem que podem distigir dos grups diferenciats.
+
+### Hierarchical clustering
+
+El clustering jeràrquic és una alternativa als mètodes de clustering de partició que no requereixen que es preespecifiqui el nombre de clusters. Farem el de tipus aglomeratiu, comença a la base de l'arbre, on cada observació forma un cluster individual, els clusters es van combinant a mesura que l'estructura creix fins a convergir en una única "branca" central.
+
+El nostre objectiu es predir el rang de preu que tenen els diamants mitjançant l'informació que ens proporcionen les altres variables.
+
+Com hem vist abans al summary els valors de la variables varien molt per el que és convenient escalarles.
+
+Aleshores, com la magnitud entre variables difereix de forma notable entre variables és convenient escalarles abans de fer el clustering.
 
 ```{r}
-dades <- diamants_subset %>% 
-  select(carat) #volem veure si pot predir el preu d'un diamant en base al cluster
-matriz_distancias <- dist(x = dades, method = "manhattan")
-
-hc_completo <- hclust(d = matriz_distancias, method = "complete")
-hc_average <- hclust(d = matriz_distancias, method = "average")
-hc_single <- hclust(d = matriz_distancias, method = "single")
-par(mfrow = c(3, 1))
-
-plot(hc_completo, labels = diamants_subset$price_group, ylab = "", xlab = "", sub = "",
- main = "Linkage completo", cex = 0.8)
-plot(hc_average, labels = diamants_subset$price_group, ylab = "", xlab = "", sub = "",
- main = "Linkage average", cex = 0.8)
-plot(hc_single, labels = diamants_subset$price_group, ylab = "", xlab = "", sub = "",
- main = "Linkage single", cex = 0.8)
-
+#primer seleccionam nomes les variables que ens interessen pel clustering
+dades <- diamants_subset %>%
+  select(-price,-x,-y,-z)
+dades <- scale(dades, center = TRUE, scale = TRUE)
+diss <- dist(dades, method = "manhattan")
 ```
 
+Vegem els dendogrames resultants amb 3 enllaços diferents:
+
+```{r}
+hc_completo <- hclust(d = diss, method = "complete") 
+fviz_dend(x = hc_completo, k = 4, cex = 0.6,
+              main="Dendograma complet") +
+ geom_hline(yintercept = 5.5, linetype = "dashed")
+```
+
+Estudiem si els diamants que comparteixen clúster tenen preus semblants.
+
+```{r}
+clusters <- cutree(tree = hc_completo, k = 7) 
+table(clusters, diamants$price_grup, dnn = list("clusters", "preu")) 
+```
+
+Molts dels diamants amb preus al rang 0-1000 cauen en el clúster 1. Notem que a mesura que el rang de preu té un valor més elevat els diamants es troben als clústers amb nombres més alts. Per tant hem trobat cert patró en la distribució dels preus dels diamants.
+
+```{r}
+hc_average  <- hclust(d = diss, method = "average") 
+fviz_dend(x = hc_average, k = 4, cex = 0.6,
+              main="Dendograma mitjà") +
+ geom_hline(yintercept = 5.5, linetype = "dashed")
+```
+
+```{r}
+hc_single   <- hclust(d = diss, method = "single")
+fviz_dend(x = hc_single, k = 4, cex = 0.6, 
+  main="Dendograma single") +
+ geom_hline(yintercept = 5.5, linetype = "dashed")
+```

@@ -124,18 +124,21 @@ Attaching package: 'dplyr'</code></pre>
     intersect, setdiff, setequal, union</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 6 × 10
-  carat cut       color clarity depth table price     x     y     z
-  &lt;dbl&gt; &lt;ord&gt;     &lt;ord&gt; &lt;ord&gt;   &lt;dbl&gt; &lt;dbl&gt; &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
-1  0.23 Ideal     E     SI2      61.5    55   326  3.95  3.98  2.43
-2  0.21 Premium   E     SI1      59.8    61   326  3.89  3.84  2.31
-3  0.23 Good      E     VS1      56.9    65   327  4.05  4.07  2.31
-4  0.29 Premium   I     VS2      62.4    58   334  4.2   4.23  2.63
-5  0.31 Good      J     SI2      63.3    58   335  4.34  4.35  2.75
-6  0.24 Very Good J     VVS2     62.8    57   336  3.94  3.96  2.48</code></pre>
+<pre><code>Rows: 53,940
+Columns: 10
+$ carat   &lt;dbl&gt; 0.23, 0.21, 0.23, 0.29, 0.31, 0.24, 0.24, 0.26, 0.22, 0.23, 0.…
+$ cut     &lt;ord&gt; Ideal, Premium, Good, Premium, Good, Very Good, Very Good, Ver…
+$ color   &lt;ord&gt; E, E, E, I, J, J, I, H, E, H, J, J, F, J, E, E, I, J, J, J, I,…
+$ clarity &lt;ord&gt; SI2, SI1, VS1, VS2, SI2, VVS2, VVS1, SI1, VS2, VS1, SI1, VS1, …
+$ depth   &lt;dbl&gt; 61.5, 59.8, 56.9, 62.4, 63.3, 62.8, 62.3, 61.9, 65.1, 59.4, 64…
+$ table   &lt;dbl&gt; 55, 61, 65, 58, 58, 57, 57, 55, 61, 61, 55, 56, 61, 54, 62, 58…
+$ price   &lt;int&gt; 326, 326, 327, 334, 335, 336, 336, 337, 337, 338, 339, 340, 34…
+$ x       &lt;dbl&gt; 3.95, 3.89, 4.05, 4.20, 4.34, 3.94, 3.95, 4.07, 3.87, 4.00, 4.…
+$ y       &lt;dbl&gt; 3.98, 3.84, 4.07, 4.23, 4.35, 3.96, 3.98, 4.11, 3.78, 4.05, 4.…
+$ z       &lt;dbl&gt; 2.43, 2.31, 2.31, 2.63, 2.75, 2.48, 2.47, 2.53, 2.49, 2.39, 2.…</code></pre>
 </div>
 </div>
-<p>La pregunta què volem respondre amb aquest conjunt de dades és quin</p>
+<p>La <strong>pregunta</strong> què volem respondre amb aquest conjunt de dades és quin</p>
 </section>
 <section id="anàlisi-exploratòria-de-les-dades" class="level2">
 <h2 class="anchored" data-anchor-id="anàlisi-exploratòria-de-les-dades">Anàlisi exploratòria de les dades:</h2>
@@ -186,38 +189,67 @@ Attaching package: 'dplyr'</code></pre>
 <pre><code>[1] 53940    10</code></pre>
 </div>
 </div>
-<p>Com tenim moltes observacions considerarem un subconjunt del dataset de forma aleatòria.</p>
+<p>Com tenim moltes observacions considerarem un subconjunt del dataset de forma aleatòria. Seleccionarem 700 mostres aleatòries atès que el df original té massa observacions per a després poder realitzar els clusterings.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>diamants <span class="ot">&lt;-</span> diamonds[<span class="fu">sample</span>(<span class="fu">nrow</span>(diamonds), <span class="dv">300</span>, <span class="at">replace =</span> <span class="cn">FALSE</span>),] <span class="co">#seleccionarem 700 mostres aleatòries atès que el df original té massa observacions per a després poder realitzar els clusterings</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">dim</span>(diamants)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>diamants <span class="ot">&lt;-</span>  diamonds[<span class="fu">sample</span>(<span class="fu">nrow</span>(diamonds), <span class="dv">500</span>, <span class="at">replace =</span> <span class="cn">FALSE</span>),]</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>diamants</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 300  10</code></pre>
+<pre><code># A tibble: 500 × 10
+   carat cut       color clarity depth table price     x     y     z
+   &lt;dbl&gt; &lt;ord&gt;     &lt;ord&gt; &lt;ord&gt;   &lt;dbl&gt; &lt;dbl&gt; &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+ 1  0.73 Ideal     I     VS1      60.7    56  2397  5.85  5.81  3.54
+ 2  0.7  Ideal     G     VS1      60.8    56  3300  5.73  5.8   3.51
+ 3  0.31 Ideal     D     VS1      61.6    55   713  4.3   4.33  2.66
+ 4  0.31 Ideal     H     VVS1     62.2    56   707  4.34  4.37  2.71
+ 5  0.31 Ideal     E     IF       60.9    55   987  4.39  4.41  2.68
+ 6  0.83 Good      E     SI1      63.7    59  3250  5.95  5.89  3.77
+ 7  0.51 Very Good D     VS2      62.5    58  1668  5.12  5.18  3.22
+ 8  0.7  Good      H     SI1      64.2    58  1771  5.59  5.62  3.6 
+ 9  0.4  Ideal     E     VS1      61.6    56  1053  4.73  4.78  2.93
+10  1.1  Very Good I     SI1      61.2    61  4640  6.61  6.66  4.01
+# ℹ 490 more rows</code></pre>
 </div>
 </div>
-<p>Llavors, tenim 7 variables quantitatives: carat, depth, table, price, x, y, z. A més, trobem una variable qualitativa: color, amb 7 possibles nivells; i una d’ordinal: cut.</p>
+<p>Cream una nova variable “price_grups” que emagatzema els preus dels diamants per rangs.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>diamants <span class="sc">%&gt;%</span> </span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> cut)) <span class="sc">+</span></span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">fill=</span><span class="st">"blue"</span>) <span class="sc">+</span> </span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x=</span><span class="st">"Qualitat del tall del diamant"</span>, <span class="at">y=</span><span class="st">"Nombre de diamants"</span>) <span class="sc">+</span></span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">20</span>),</span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.title =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">20</span>, <span class="at">face =</span> <span class="st">"bold"</span>)) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>diamants<span class="sc">$</span>price_grup <span class="ot">&lt;-</span> <span class="fu">cut</span>(diamants<span class="sc">$</span>price, <span class="at">breaks =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1000</span>,<span class="dv">2500</span>, <span class="dv">5000</span>, <span class="dv">10000</span>, <span class="dv">15000</span>, <span class="dv">20000</span>, <span class="cn">Inf</span>),</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>                             <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"0-1000"</span>, <span class="st">"1000-2500"</span>,<span class="st">"25001-5000"</span>, <span class="st">"5001-10000"</span>, <span class="st">"10001-15000"</span>, <span class="st">"15001-20000"</span>, <span class="st">"20001+"</span>))</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Visualizem la distribució dels diamants en cada rang de preus</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(diamants, <span class="fu">aes</span>(<span class="at">x =</span> price_grup, <span class="at">fill =</span> price_grup)) <span class="sc">+</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>() <span class="sc">+</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Distribució dels diamants en diferents rangs de preus"</span>,</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Rang de preus"</span>,</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"nombre de diamants"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="analisi_clustering_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<p>La majoria de diamants del nostre DS són de qualitat alta.</p>
+<p>Llavors, tenim 7 variables quantitatives: carat, depth, table, price, x, y, z. A més, trobem una variable qualitativa: color, amb 7 possibles nivells; i una d’ordinal: cut.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>diamants <span class="sc">%&gt;%</span> </span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> color)) <span class="sc">+</span> </span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">fill=</span><span class="st">'pink'</span>) <span class="sc">+</span></span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x=</span><span class="st">"Color del diamant"</span>, <span class="at">y=</span><span class="st">"Nombre de diamants"</span>) <span class="sc">+</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> cut)) <span class="sc">+</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">fill=</span><span class="st">"blue"</span>) <span class="sc">+</span> </span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x=</span><span class="st">"Qualitat del tall del diamant"</span>, <span class="at">y=</span><span class="st">"Nombre de diamants"</span>) <span class="sc">+</span></span>
 <span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
 <span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">20</span>),</span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.title =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">20</span>, <span class="at">face =</span> <span class="st">"bold"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.title =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">20</span>, <span class="at">face =</span> <span class="st">"bold"</span>)) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="analisi_clustering_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>La majoria de diamants del nostre DS són de qualitat alta.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>diamants <span class="sc">%&gt;%</span> </span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> color)) <span class="sc">+</span> </span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">fill=</span><span class="st">'pink'</span>) <span class="sc">+</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x=</span><span class="st">"Color del diamant"</span>, <span class="at">y=</span><span class="st">"Nombre de diamants"</span>) <span class="sc">+</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">20</span>),</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.title =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">20</span>, <span class="at">face =</span> <span class="st">"bold"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="analisi_clustering_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 <p>Respecte al color, vegem que hi ha més diversitat, però el color J és el que manco unitats té.</p>
@@ -230,21 +262,12 @@ Attaching package: 'dplyr'</code></pre>
 <pre><code>Loading required package: grid</code></pre>
 </div>
 <div class="cell-output-display">
-<p><img src="analisi_clustering_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid" width="672"></p>
+<p><img src="analisi_clustering_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid" width="672"></p>
 </div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">#pesa massa</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="co">#library(GGally)</span></span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="co">#library(gapminder)</span></span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="co">#diamants %&gt;% </span></span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="co">#  select(-color) %&gt;% </span></span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="co">#  ggpairs(.)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Estudiem la distribució dels diamants en funció del preu:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data=</span>diamonds) <span class="sc">+</span> </span>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data=</span>diamants) <span class="sc">+</span> </span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="at">binwidth=</span><span class="dv">500</span>, <span class="fu">aes</span>(<span class="at">x=</span>price)) <span class="sc">+</span> </span>
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">"Distribució dels preus dels diamants"</span>) <span class="sc">+</span> </span>
 <span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">"Preu dels diamants"</span>) <span class="sc">+</span> </span>
@@ -256,7 +279,7 @@ Attaching package: 'dplyr'</code></pre>
 </div>
 <p>Aquesta és una distribució de cua llarga, amb una concentració elevada d’observacions per sota dels 5.000.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(diamonds, <span class="fu">aes</span>(<span class="at">x =</span> carat, <span class="at">y =</span> price, <span class="at">color =</span> color)) <span class="sc">+</span></span>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(diamants, <span class="fu">aes</span>(<span class="at">x =</span> carat, <span class="at">y =</span> price, <span class="at">color =</span> color)) <span class="sc">+</span></span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
 <span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Scatterplot of Diamond Carat vs Price"</span>,</span>
 <span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Carat"</span>,</span>
@@ -267,7 +290,7 @@ Attaching package: 'dplyr'</code></pre>
 </div>
 <p>Sembla que, indistintivament del color del diamant, el preu tendeix a augmentar quan carat creix.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(diamonds, <span class="fu">aes</span>(<span class="at">x =</span> carat, <span class="at">fill =</span> color)) <span class="sc">+</span></span>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(diamants, <span class="fu">aes</span>(<span class="at">x =</span> carat, <span class="at">fill =</span> color)) <span class="sc">+</span></span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="at">binwidth =</span> <span class="fl">0.5</span>, <span class="at">position =</span> <span class="st">"identity"</span>, <span class="at">alpha =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Histogram of Diamond Carat vs Frequency"</span>,</span>
 <span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Carat"</span>,</span>
@@ -278,11 +301,11 @@ Attaching package: 'dplyr'</code></pre>
 </div>
 <p>La distribució és semblant a la dels preus (de cua llarga).</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>mean_values <span class="ot">&lt;-</span> diamonds <span class="sc">%&gt;%</span></span>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>mean_values <span class="ot">&lt;-</span> diamants <span class="sc">%&gt;%</span></span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(cut) <span class="sc">%&gt;%</span></span>
 <span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">mean_carat =</span> <span class="fu">mean</span>(carat))</span>
 <span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(diamonds, <span class="fu">aes</span>(<span class="at">x =</span> cut, <span class="at">y =</span> carat, <span class="at">fill =</span> cut)) <span class="sc">+</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(diamants, <span class="fu">aes</span>(<span class="at">x =</span> cut, <span class="at">y =</span> carat, <span class="at">fill =</span> cut)) <span class="sc">+</span></span>
 <span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_violin</span>(<span class="at">alpha =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
 <span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">data =</span> mean_values, <span class="fu">aes</span>(<span class="at">x =</span> cut, <span class="at">y =</span> mean_carat),</span>
 <span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>             <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">size =</span> <span class="dv">3</span>, <span class="at">shape =</span> <span class="dv">19</span>) <span class="sc">+</span>  </span>
@@ -310,83 +333,143 @@ Attaching package: 'dplyr'</code></pre>
 </section>
 <section id="anàlisi-de-clustering" class="level2">
 <h2 class="anchored" data-anchor-id="anàlisi-de-clustering">Anàlisi de Clustering</h2>
-<p>El nostre objectiu es predir el rang de preu que tenen els diamants mitjançant l’informació que ens proporcionen les altres variables.</p>
-<p>Primer, cream una nova variable “price_grups” que emagatzema els preus dels diamants per rangs.</p>
+<section id="clúster-particional-usant-lalgorisme-de-lloyd" class="level3">
+<h3 class="anchored" data-anchor-id="clúster-particional-usant-lalgorisme-de-lloyd">Clúster particional usant l’algorisme de Lloyd</h3>
+<p>Primer farem alguns canvis en el data set per poder treballar amb ell. Mutam les variables “cut” i “clarity” a variables del tipus integer.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>diamants<span class="sc">$</span>price_grup <span class="ot">&lt;-</span> <span class="fu">cut</span>(diamants<span class="sc">$</span>price, <span class="at">breaks =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1000</span>,<span class="dv">2500</span>, <span class="dv">5000</span>, <span class="dv">10000</span>, <span class="dv">15000</span>, <span class="dv">20000</span>, <span class="cn">Inf</span>),</span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>                             <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"0-1000"</span>, <span class="st">"1000-2500"</span>,<span class="st">"25001-5000"</span>, <span class="st">"5001-10000"</span>, <span class="st">"10001-15000"</span>, <span class="st">"15001-20000"</span>, <span class="st">"20001+"</span>))</span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Visualizem la distribució dels diamants en cada rang de preus</span></span>
-<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(diamants, <span class="fu">aes</span>(<span class="at">x =</span> price_grup, <span class="at">fill =</span> price_grup)) <span class="sc">+</span></span>
-<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>() <span class="sc">+</span></span>
-<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Distribució dels diamants en diferents rangs de preus"</span>,</span>
-<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Rang de preus"</span>,</span>
-<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"nombre de diamants"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<p><img src="analisi_clustering_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid" width="672"></p>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>diamants_subset <span class="ot">&lt;-</span>  diamants<span class="sc">%&gt;%</span> </span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">cut =</span> <span class="fu">as.integer</span>(cut), <span class="at">clarity =</span> <span class="fu">as.integer</span>(clarity)) <span class="sc">%&gt;%</span> </span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>color,<span class="sc">-</span>price_grup)<span class="sc">%&gt;%</span> </span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>   <span class="fu">na.omit</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-</div>
+<section id="anàlisi-de-les-components-principals" class="level4">
+<h4 class="anchored" data-anchor-id="anàlisi-de-les-components-principals">Anàlisi de les components principals</h4>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(diamants<span class="sc">$</span>price_grup) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>
-     0-1000   1000-2500  25001-5000  5001-10000 10001-15000 15001-20000 
-         77          65          62          59          26          11 
-     20001+ 
-          0 </code></pre>
-</div>
-</div>
-<p>Com hem vist abans al summary els valors de la variable “carat” varien entre 0.23 i 2.3 i té mitjana 0.8161 i la variable “depth” varia entre 57.80 i 67.20 i té mitjana 61.84.</p>
-<p>Aleshores, com la magnitud entre variables difereix de forma notable entre variables és convenient escalarles abans de fer el clustering.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co">#primer seleccionam nomes les variables que ens interessen pel clustering</span></span>
-<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>dades <span class="ot">&lt;-</span> diamants <span class="sc">%&gt;%</span> </span>
-<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">na.omit</span>(.) <span class="sc">%&gt;%</span></span>
-<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(carat)</span>
-<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>dades <span class="ot">&lt;-</span> <span class="fu">scale</span>(dades, <span class="at">center =</span> <span class="cn">TRUE</span>, <span class="at">scale =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<p>Una forma senzilla d’estimar el nombre K òptim de clústers quan no es disposa d’informació addicional en la qual basar-se és aplicar l’algorisme per a un rang de valors de K, identificant aquell a partir del qual la reducció en la suma total de variància intraclúster deixa de ser substancial. Usarem la funció fviz_nbclust() que automatitza aquest procés. En aquest cas, donat que es sospita de la presència d’outliers, s’emplea la distància de Manhattan com a mesura de similitud.</p>
-<p>Vegem-ho</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(cluster) </span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(factoextra) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"factoextra"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Warning: package 'factoextra' was built under R version 4.3.2</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Welcome! Want to learn more? See two factoextra-related books at https://goo.gl/ve3WBa</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fviz_nbclust</span>(<span class="at">x =</span> dades, <span class="at">FUNcluster =</span> pam, <span class="at">method =</span> <span class="st">"wss"</span>, </span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>diss <span class="ot">&lt;-</span> <span class="fu">dist</span>(dades, <span class="at">method =</span> <span class="st">"manhattan"</span>)) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<p><img src="analisi_clustering_files/figure-html/unnamed-chunk-16-1.png" class="img-fluid" width="672"></p>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>dades.acp <span class="ot">&lt;-</span> <span class="fu">prcomp</span>(diamants_subset, <span class="at">scale =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-</div>
-<p>Notem que a partir del cluster 4 la reducció en la suma total de cuadrats interns s’estabilitza. Per tant agafam k=4.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>) </span>
-<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>pam_clusters <span class="ot">&lt;-</span> <span class="fu">pam</span>(<span class="at">x =</span> dades, <span class="at">k =</span> <span class="dv">4</span>, <span class="at">metric =</span> <span class="st">"manhattan"</span>) </span>
-<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>pam_clusters </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>lambdas<span class="ot">=</span><span class="fu">get_eigenvalue</span>(dades.acp)</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>lambdas</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>        eigenvalue variance.percent cumulative.variance.percent
+Dim.1 5.0690359025     56.322621139                    56.32262
+Dim.2 1.4343346112     15.937051235                    72.25967
+Dim.3 1.2187936229     13.542151366                    85.80182
+Dim.4 0.8408747238      9.343052486                    95.14488
+Dim.5 0.2865124158      3.183471287                    98.32835
+Dim.6 0.1334180108      1.482422342                    99.81077
+Dim.7 0.0158403462      0.176003847                    99.98677
+Dim.8 0.0008976878      0.009974309                    99.99675
+Dim.9 0.0002926790      0.003251989                   100.00000</code></pre>
+</div>
+</div>
+<p>Notem que les dues primeras components suman més del 72% de la variança.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>dades.acp<span class="sc">$</span>rotation</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                PC1         PC2          PC3          PC4          PC5
+carat    0.43814080  0.08620060 -0.035665122 -0.048703228  0.005287398
+cut     -0.12709257  0.72004842 -0.029586670  0.270270320  0.624713144
+clarity -0.19682693  0.23703322  0.050318090 -0.919513379  0.098706993
+depth    0.03502381 -0.42390004 -0.730433591 -0.116103399  0.508200277
+table    0.12592013 -0.43107169  0.674080644 -0.061247818  0.575776521
+price    0.39848619  0.18643523 -0.030045344 -0.247538316 -0.072618379
+x        0.43858543  0.08796198  0.009654195 -0.002308503  0.009501882
+y        0.43846522  0.09253754  0.011374098 -0.010054592  0.001213353
+z        0.43892661  0.03663783 -0.079230520 -0.021544351  0.069362453
+                PC6          PC7           PC8           PC9
+carat    0.02655656  0.892062441  0.0194742966  0.0083808746
+cut      0.03435763  0.001632403  0.0025830284  0.0001933393
+clarity -0.21516727  0.031449776 -0.0027693415  0.0009302416
+depth    0.05729719 -0.017526070  0.0035312115  0.1009887968
+table    0.09300297 -0.002838411  0.0027699774  0.0011925281
+price    0.82170433 -0.252139700 -0.0149829501 -0.0015402822
+x       -0.30659405 -0.202834475 -0.7103019683  0.4000575868
+y       -0.29459260 -0.234768277  0.7034435035  0.4027647146
+z       -0.28965862 -0.207569824 -0.0003615016 -0.8169827651</code></pre>
+</div>
+</div>
+<p>Les variables “carat”,“price”,“x”, “y” i “z” tenen molt de pes a la primera component principal. Notem que a la segona component té molt de pes la variable “cut”.</p>
+</section>
+<section id="estimació-del-nombre-k-òptim" class="level4">
+<h4 class="anchored" data-anchor-id="estimació-del-nombre-k-òptim">Estimació del nombre K òptim</h4>
+<p>Una forma senzilla d’estimar el nombre K òptim de clústers quan no es disposa d’informació addicional en la qual basar-se és aplicar l’algorisme per a un rang de valors de K, identificant aquell a partir del qual la reducció en la suma total de variància intraclúster deixa de ser substancial.</p>
+<p>Usarem la funció fviz_nbclust() que automatitza aquest procés. En aquest cas, donat que es sospita de la presència d’outliers, s’emplea la distància de Manhattan com a mesura de similitud.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(factoextra)</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a><span class="fu">fviz_nbclust</span>(diamants_subset, kmeans, <span class="at">method =</span> <span class="st">"wss"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="analisi_clustering_files/figure-html/unnamed-chunk-17-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Pel mètode del colze, concloem que el nombre òptim de clusters és k=2.</p>
+</section>
+<section id="k-means-clustering" class="level4">
+<h4 class="anchored" data-anchor-id="k-means-clustering">K-means clustering</h4>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>diamants_scale <span class="ot">&lt;-</span> <span class="fu">scale</span>(diamants_subset, <span class="at">center =</span> <span class="cn">TRUE</span>, <span class="at">scale =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>diamants_cluster <span class="ot">&lt;-</span> <span class="fu">kmeans</span>(diamants_subset, <span class="at">centers =</span> <span class="dv">2</span>, <span class="at">algorithm =</span> <span class="st">"Lloyd"</span>)</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>diamants_subset<span class="sc">$</span>cluster <span class="ot">&lt;-</span> diamants_cluster<span class="sc">$</span>cluster</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a><span class="fu">fviz_cluster</span>(diamants_cluster, <span class="at">data =</span> diamants_subset,<span class="at">geom =</span> <span class="st">"point"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="analisi_clustering_files/figure-html/unnamed-chunk-18-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>diamants_subset <span class="sc">%&gt;%</span> </span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(cluster) <span class="sc">%&gt;%</span> </span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise_all</span>(mean)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 2 × 10
+  cluster carat   cut clarity depth table  price     x     y     z
+    &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+1       1 0.642  3.94    4.12  61.9  57.3  2376.  5.39  5.39  3.33
+2       2 1.54   3.70    3.88  61.8  57.7 11162.  7.35  7.35  4.54</code></pre>
+</div>
+</div>
+<p>Vegem que la diferència principal dels clusters rau a carat i en el preu.</p>
+</section>
+<section id="k-medoids-clusteringpam" class="level4">
+<h4 class="anchored" data-anchor-id="k-medoids-clusteringpam">K-medoids clustering(PAM)</h4>
+<p>Facem ara el clustering fent us del mètode K-medoids(PAM). K-medoids és un mètode de clustering molt semblant a K-means pel fet que tots dos agrupen les observacions en K clusters, on K és un valor preestablert per l’analista. La diferència rau en què en K-medoids cada cluster està representat per una observació present en el cluster, mentre que en K-means cada cluster està representat pel seu centroid, que correspon al promig de totes les observacions del cluster, però sense cap en particular.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(cluster)</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>pam_clusters <span class="ot">&lt;-</span> <span class="fu">pam</span>(<span class="at">x =</span> diamants_subset, <span class="at">k =</span> <span class="dv">2</span>, <span class="at">metric =</span> <span class="st">"manhattan"</span>) </span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>pam_clusters </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Medoids:
-      ID      carat
-[1,]  37  0.3567530
-[2,] 291 -0.9869126
-[3,]  17 -0.2663963
-[4,]  10  1.6809451
+      ID carat cut clarity depth table price    x    y    z cluster
+[1,] 266  0.58   5       3  61.6    57  1184 5.34 5.38 3.30       1
+[2,] 321  1.11   3       3  62.4    57  6563 6.58 6.60 4.11       1
 Clustering vector:
-  [1] 1 2 3 2 1 2 1 1 4 4 2 1 3 3 2 1 3 2 1 2 1 4 3 2 4 4 3 3 3 1 3 3 2 4 2 1 1
- [38] 3 1 4 1 3 3 2 2 1 3 1 2 2 4 3 3 1 2 1 4 2 3 1 1 1 3 1 2 4 2 2 3 1 1 3 3 3
- [75] 4 2 4 1 1 1 4 4 2 2 2 3 3 2 1 2 4 1 2 3 2 3 2 4 2 4 3 3 2 1 4 2 3 3 1 2 1
-[112] 2 2 4 2 2 1 2 2 2 2 1 1 2 2 1 1 2 1 2 3 2 2 2 1 1 2 2 1 2 2 2 3 2 1 2 1 4
-[149] 1 1 2 1 2 2 1 2 3 1 3 1 1 1 3 1 2 3 1 1 1 2 4 2 2 1 2 1 3 2 2 4 2 2 2 1 2
-[186] 2 1 2 1 1 3 1 1 2 4 2 1 2 4 2 2 4 2 2 1 1 2 3 4 4 3 2 2 4 1 2 1 2 3 1 1 3
-[223] 2 4 4 1 2 1 2 1 2 3 4 3 3 1 1 2 3 3 2 2 4 1 2 3 1 1 4 3 2 1 1 3 2 4 2 2 1
-[260] 4 2 2 4 1 2 2 1 3 3 1 4 3 2 2 1 2 1 3 4 4 3 1 1 3 4 2 2 2 1 4 2 1 4 2 1 1
-[297] 2 1 1 2
+  [1] 1 1 1 1 1 1 1 1 1 2 1 1 2 2 2 2 2 1 1 2 2 1 2 2 2 1 1 1 1 1 2 1 2 1 1 1 2
+ [38] 1 1 2 2 1 2 1 2 2 2 2 2 2 2 1 1 1 1 1 2 1 2 1 1 1 2 2 2 2 2 2 1 2 2 1 1 1
+ [75] 1 1 2 2 1 1 2 1 1 1 1 1 2 2 2 1 1 2 1 2 1 1 1 1 1 1 1 1 1 2 2 1 2 1 2 1 1
+[112] 2 1 1 1 2 2 2 2 1 2 1 2 1 1 1 1 1 1 1 1 1 2 2 1 1 1 2 1 1 2 2 2 2 1 2 2 2
+[149] 2 1 1 1 2 1 2 1 1 2 2 2 1 1 2 2 1 1 1 1 1 2 2 1 1 2 1 2 1 1 1 2 1 2 1 1 1
+[186] 2 1 1 2 1 2 2 1 1 1 1 1 1 1 1 2 1 1 1 1 1 2 1 2 1 1 1 2 2 1 1 2 1 1 1 2 1
+[223] 1 1 2 2 2 2 2 1 1 1 2 1 1 1 1 1 1 1 2 2 1 1 1 2 2 1 1 2 1 2 2 1 1 1 1 2 2
+[260] 1 2 1 1 1 2 1 1 1 1 1 2 1 1 1 2 1 1 2 1 2 1 1 1 2 2 1 2 1 2 2 1 1 2 1 1 1
+[297] 2 1 1 1 1 1 1 2 1 2 1 1 1 2 1 1 1 2 1 2 2 1 1 1 2 1 1 1 1 1 1 1 1 1 2 2 1
+[334] 1 1 1 2 2 1 1 1 1 1 1 1 1 1 1 1 2 2 1 2 1 1 1 2 1 1 2 2 1 2 1 1 1 1 2 2 2
+[371] 1 1 1 2 1 1 1 1 1 1 1 1 2 1 1 1 1 1 1 1 1 1 1 2 2 2 2 1 1 1 1 2 1 2 1 1 2
+[408] 1 1 2 1 1 1 1 1 2 2 2 2 1 1 1 1 2 1 1 1 2 1 2 2 1 1 1 2 1 1 1 1 1 1 1 1 2
+[445] 2 1 2 2 1 2 1 1 1 1 2 2 2 2 1 1 1 2 1 1 2 1 1 1 1 2 2 1 2 2 1 1 1 1 1 2 2
+[482] 2 2 1 2 1 1 2 2 2 1 2 2 1 1 1 2 2 1 1
 Objective function:
-    build      swap 
-0.2069375 0.1947991 
+   build     swap 
+1777.102 1619.420 
 
 Available components:
  [1] "medoids"    "id.med"     "clustering" "objective"  "isolation" 
@@ -394,35 +477,88 @@ Available components:
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="co">#ARREGLAR QUE ES GRAFICS NO ES VEUEN</span></span>
-<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a> </span>
-<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>hc_completo <span class="ot">&lt;-</span> <span class="fu">hclust</span>(<span class="at">d =</span> diss, <span class="at">method =</span> <span class="st">"complete"</span>) </span>
-<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>hc_average  <span class="ot">&lt;-</span> <span class="fu">hclust</span>(<span class="at">d =</span> diss, <span class="at">method =</span> <span class="st">"average"</span>) </span>
-<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>hc_single   <span class="ot">&lt;-</span> <span class="fu">hclust</span>(<span class="at">d =</span> diss, <span class="at">method =</span> <span class="st">"single"</span>) </span>
-<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">1</span>)) </span>
-<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(hc_completo, <span class="at">labels =</span> diamants<span class="sc">$</span>price_grup, <span class="at">ylab =</span> <span class="st">""</span>, <span class="at">xlab =</span> <span class="st">""</span>, <span class="at">sub =</span> <span class="st">""</span>, </span>
-<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a><span class="at">main =</span> <span class="st">"Linkage completo"</span>, <span class="at">cex =</span> <span class="fl">0.8</span>) </span>
-<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(hc_average, <span class="at">labels =</span> diamants<span class="sc">$</span>price_grup, <span class="at">ylab =</span> <span class="st">""</span>, <span class="at">xlab =</span> <span class="st">""</span>, <span class="at">sub =</span> <span class="st">""</span>, </span>
-<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a><span class="at">main =</span> <span class="st">"Linkage average"</span>, <span class="at">cex =</span> <span class="fl">0.8</span>) </span>
-<span id="cb30-11"><a href="#cb30-11" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(hc_single, <span class="at">labels =</span> diamants<span class="sc">$</span>price_grup, <span class="at">ylab =</span> <span class="st">""</span>, <span class="at">xlab =</span> <span class="st">""</span>, <span class="at">sub =</span> <span class="st">""</span>, </span>
-<span id="cb30-12"><a href="#cb30-12" aria-hidden="true" tabindex="-1"></a><span class="at">main =</span> <span class="st">"Linkage single"</span>, <span class="at">cex =</span> <span class="fl">0.8</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>medoids <span class="ot">&lt;-</span> <span class="fu">prcomp</span>(diamants_subset)<span class="sc">$</span>x </span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Es seleccionen únicament las projeccions de les observacions que son medoids </span></span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>medoids <span class="ot">&lt;-</span> medoids[<span class="fu">rownames</span>(pam_clusters<span class="sc">$</span>medoids), <span class="fu">c</span>(<span class="st">"PC1"</span>, <span class="st">"PC2"</span>)] </span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>medoids <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(medoids) </span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(medoids) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"x"</span>, <span class="st">"y"</span>)</span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a><span class="fu">fviz_cluster</span>(<span class="at">object =</span> pam_clusters, <span class="at">data =</span> diamants_subset, <span class="at">ellipse.type =</span> <span class="st">"t"</span>,  <span class="at">geom =</span> <span class="st">"point"</span>, </span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a><span class="at">repel =</span> F) <span class="sc">+</span> </span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a><span class="fu">theme_bw</span>() <span class="sc">+</span> </span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a><span class="fu">geom_point</span>(<span class="at">data =</span> medoids, <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">size =</span> <span class="dv">2</span>) <span class="sc">+</span> </span>
+<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a><span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="analisi_clustering_files/figure-html/unnamed-chunk-18-1.png" class="img-fluid" width="672"></p>
+<p><img src="analisi_clustering_files/figure-html/unnamed-chunk-21-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
+<p>Notem que podem distigir dos grups diferenciats.</p>
+</section>
+</section>
+<section id="hierarchical-clustering" class="level3">
+<h3 class="anchored" data-anchor-id="hierarchical-clustering">Hierarchical clustering</h3>
+<p>El clustering jeràrquic és una alternativa als mètodes de clustering de partició que no requereixen que es preespecifiqui el nombre de clusters. Farem el de tipus aglomeratiu, comença a la base de l’arbre, on cada observació forma un cluster individual, els clusters es van combinant a mesura que l’estructura creix fins a convergir en una única “branca” central.</p>
+<p>El nostre objectiu es predir el rang de preu que tenen els diamants mitjançant l’informació que ens proporcionen les altres variables.</p>
+<p>Com hem vist abans al summary els valors de la variables varien molt per el que és convenient escalarles.</p>
+<p>Aleshores, com la magnitud entre variables difereix de forma notable entre variables és convenient escalarles abans de fer el clustering.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>clusters <span class="ot">&lt;-</span> <span class="fu">cutree</span>(<span class="at">tree =</span> hc_completo, <span class="at">k =</span> <span class="dv">4</span>) </span>
-<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(clusters, diamants<span class="sc">$</span>price_grup, <span class="at">dnn =</span> <span class="fu">list</span>(<span class="st">"clusters"</span>, <span class="st">"preu"</span>)) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="co">#primer seleccionam nomes les variables que ens interessen pel clustering</span></span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>dades <span class="ot">&lt;-</span> diamants_subset <span class="sc">%&gt;%</span></span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>price,<span class="sc">-</span>x,<span class="sc">-</span>y,<span class="sc">-</span>z)</span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>dades <span class="ot">&lt;-</span> <span class="fu">scale</span>(dades, <span class="at">center =</span> <span class="cn">TRUE</span>, <span class="at">scale =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>diss <span class="ot">&lt;-</span> <span class="fu">dist</span>(dades, <span class="at">method =</span> <span class="st">"manhattan"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Vegem els dendogrames resultants amb 3 enllaços diferents:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>hc_completo <span class="ot">&lt;-</span> <span class="fu">hclust</span>(<span class="at">d =</span> diss, <span class="at">method =</span> <span class="st">"complete"</span>) </span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a><span class="fu">fviz_dend</span>(<span class="at">x =</span> hc_completo, <span class="at">k =</span> <span class="dv">4</span>, <span class="at">cex =</span> <span class="fl">0.6</span>,</span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>              <span class="at">main=</span><span class="st">"Dendograma complet"</span>) <span class="sc">+</span></span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a> <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="fl">5.5</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: The `&lt;scale&gt;` argument of `guides()` cannot be `FALSE`. Use "none" instead as
+of ggplot2 3.3.4.
+ℹ The deprecated feature was likely used in the factoextra package.
+  Please report the issue at &lt;https://github.com/kassambara/factoextra/issues&gt;.</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="analisi_clustering_files/figure-html/unnamed-chunk-23-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Estudiem si els diamants que comparteixen clúster tenen preus semblants.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>clusters <span class="ot">&lt;-</span> <span class="fu">cutree</span>(<span class="at">tree =</span> hc_completo, <span class="at">k =</span> <span class="dv">7</span>) </span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(clusters, diamants<span class="sc">$</span>price_grup, <span class="at">dnn =</span> <span class="fu">list</span>(<span class="st">"clusters"</span>, <span class="st">"preu"</span>)) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>        preu
 clusters 0-1000 1000-2500 25001-5000 5001-10000 10001-15000 15001-20000 20001+
-       1      0         1         38         52           4           0      0
-       2     77        64         24          0           0           0      0
-       3      0         0          0          1           9           8      0
-       4      0         0          0          6          13           3      0</code></pre>
+       1     85        54         69         31           0           0      0
+       2     27        26          4          0           0           0      0
+       3      0         6         18          3           0           0      0
+       4     25        20         25          7           0           0      0
+       5      0         0          0         23          19          12      0
+       6      0         0          0         16          13           4      0
+       7      1         3          8          1           0           0      0</code></pre>
 </div>
 </div>
-<p>Tots els diamants amb preus al rang 0-1000 cauen en el clúster 1. Els que es troben en els rang 2501-5000 cauen en el cluster 2 manco un petita quantitat(4 diamants de 71).,,,,</p>
+<p>Molts dels diamants amb preus al rang 0-1000 cauen en el clúster 1. Notem que a mesura que el rang de preu té un valor més elevat els diamants es troben als clústers amb nombres més alts. Per tant hem trobat cert patró en la distribució dels preus dels diamants.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>hc_average  <span class="ot">&lt;-</span> <span class="fu">hclust</span>(<span class="at">d =</span> diss, <span class="at">method =</span> <span class="st">"average"</span>) </span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a><span class="fu">fviz_dend</span>(<span class="at">x =</span> hc_average, <span class="at">k =</span> <span class="dv">4</span>, <span class="at">cex =</span> <span class="fl">0.6</span>,</span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>              <span class="at">main=</span><span class="st">"Dendograma mitjà"</span>) <span class="sc">+</span></span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a> <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="fl">5.5</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="analisi_clustering_files/figure-html/unnamed-chunk-25-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>hc_single   <span class="ot">&lt;-</span> <span class="fu">hclust</span>(<span class="at">d =</span> diss, <span class="at">method =</span> <span class="st">"single"</span>)</span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a><span class="fu">fviz_dend</span>(<span class="at">x =</span> hc_single, <span class="at">k =</span> <span class="dv">4</span>, <span class="at">cex =</span> <span class="fl">0.6</span>, </span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">main=</span><span class="st">"Dendograma single"</span>) <span class="sc">+</span></span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a> <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="fl">5.5</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="analisi_clustering_files/figure-html/unnamed-chunk-26-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
 </section>
 
 </main>
