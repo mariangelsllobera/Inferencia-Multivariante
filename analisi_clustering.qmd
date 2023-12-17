@@ -11,7 +11,7 @@ En primer lloc, el repositori on trobem tota la informació d'aquest projecte é
 
 Ara, carreguem el nostre DS, basat en observacions de diamants:
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning = F}
 library(ggplot2)
 library(tibble)
 library(dplyr)
@@ -170,7 +170,7 @@ ggplot(diamants, aes(x = cut, y = carat, fill = cut)) +
   theme_minimal()
 ```
 
-Les mitjanes de les carat són molt semblants, si les comparam entre qualitats del tall. Ara bé, les distribucions són prou diferents.
+Les mitjanes de les carat són molt semblants, si les comparam entre qualitats del tall. Ara bé, les distribucions són prou diferents, excepte les de 'Very good' i 'Premium'.
 
 Vegem quina correlació hi ha entre les variables quantitatives
 
@@ -219,13 +219,13 @@ lambdas=get_eigenvalue(dades.acp)
 lambdas
 ```
 
-Notem que les dues primeras components suman més del 72% de la variança.
+Notem que les dues primeres components sumen més del 72% de la variança.
 
 ```{r}
 dades.acp$rotation
 ```
 
-Les variables "carat","price","x", "y" i  "z" tenen molt de pes a la primera component principal. Notem que a la segona component té molt de pes la variable "cut".
+Les variables "carat","price","x", "y" i "z" tenen molt de pes a la primera component principal. Notem que a la segona component té molt de pes la variable "cut".
 
 #### Estimació del nombre K òptim
 
@@ -259,9 +259,9 @@ diamants_subset %>%
 
 Vegem que la diferència principal dels clusters rau a carat i en el preu.
 
-#### K-medoids clustering(PAM)
+#### K-medoids clustering (PAM)
 
-Facem ara el clustering fent us del mètode K-medoids(PAM). K-medoids és un mètode de clustering molt semblant a K-means pel fet que tots dos agrupen les observacions en K clusters, on K és un valor preestablert per l'analista. La diferència rau en què en K-medoids cada cluster està representat per una observació present en el cluster, mentre que en K-means cada cluster està representat pel seu centroid, que correspon al promig de totes les observacions del cluster, però sense cap en particular.
+Facem ara el clustering fent us del mètode K-medoids (PAM). K-medoids és un mètode de clustering molt semblant a K-means pel fet que tots dos agrupen les observacions en K clusters, on K és un valor preestablert per l'analista. La diferència rau en què en K-medoids cada cluster està representat per una observació present en el cluster, mentre que en K-means cada cluster està representat pel seu centroid, que correspon al promig de totes les observacions del cluster, però sense cap en particular.
 
 ```{r}
 set.seed(123)
@@ -307,30 +307,30 @@ Vegem els dendogrames resultants amb 3 enllaços diferents:
 
 ```{r}
 hc_completo <- hclust(d = diss, method = "complete") 
-fviz_dend(x = hc_completo, k = 4, cex = 0.6,
+fviz_dend(x = hc_completo, k = 5, cex = 0.6,
               main="Dendograma complet") +
- geom_hline(yintercept = 5.5, linetype = "dashed")
+ geom_hline(yintercept = 13, linetype = "dashed")
 ```
 
 Estudiem si els diamants que comparteixen clúster tenen preus semblants.
 
 ```{r}
-clusters <- cutree(tree = hc_completo, k = 7) 
+clusters <- cutree(tree = hc_completo, k = 5) 
 table(clusters, diamants$price_grup, dnn = list("clusters", "preu")) 
 ```
 
 Molts dels diamants amb preus al rang 0-1000 cauen en el clúster 1. Notem que a mesura que el rang de preu té un valor més elevat els diamants es troben als clústers amb nombres més alts. Per tant hem trobat cert patró en la distribució dels preus dels diamants.
 
+Vegem què passa si usem l'enllaç mitjà:
+
 ```{r}
 hc_average  <- hclust(d = diss, method = "average") 
-fviz_dend(x = hc_average, k = 4, cex = 0.6,
-              main="Dendograma mitjà") +
- geom_hline(yintercept = 5.5, linetype = "dashed")
+fviz_dend(x = hc_average, cex = 0.6,
+              main="Dendograma mitjà") 
 ```
 
 ```{r}
 hc_single   <- hclust(d = diss, method = "single")
-fviz_dend(x = hc_single, k = 4, cex = 0.6, 
-  main="Dendograma single") +
- geom_hline(yintercept = 5.5, linetype = "dashed")
+fviz_dend(x = hc_single, cex = 0.6, 
+  main="Dendograma single") 
 ```
