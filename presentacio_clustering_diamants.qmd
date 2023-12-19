@@ -1,0 +1,293 @@
+---
+title: "Clustering i ACP"
+author: "Alba Linares i Maria Àngels"
+format: revealjs
+editor: visual
+---
+## Índex
+- Anàlisi exploratòria de les dades
+- Anàlisi de les components principals
+- Anàlisi de Clustering
+- Clúster particional
+- Clústers jeràrquics
+- Conclusió
+
+## Data Set: Diamonds
+
+
+
+```{r, echo=FALSE, warning = F}
+library(ggplot2)
+library(tibble)
+library(dplyr)
+glimpse(diamonds)
+```
+
+
+
+## Les variables del Data Set(1)
+
+-   *carat*: El pes del diamant en quirats.
+
+-   *cut*: La qualitat del tall del diamant, que pot tenir els nivells següents: "Fair", "Good", "Very Good", "Premium" i "Ideal".
+
+-   *color*: El color del diamant, que es codifica en lletres de la "J" (pitjor) a la "D" (millor).
+
+-   *clarity*: La claredat del diamant, que pot tenir els nivells següents: "I1" (la pitjor) fins a "IF" (la millor).
+
+-   *depth*: La profunditat total del diamant com a percentatge del seu diàmetre.
+
+## Les variables del Data Set(2)
+
+-   *table*: L'amplada de la part superior del diamant expressat com un percentatge del diàmetre total.
+
+-   *price*: El preu del diamant en dòlars nord-americans.
+
+-   *x*: La longitud en mil·límetres.
+
+-   *y*: L'amplada en mil·límetres.
+
+-   *z*: La profunditat en mil·límetres.
+
+
+
+## Consideram un subconjunt del Data Set
+```{r}
+set.seed(123)
+diamants <-  diamonds[sample(nrow(diamonds), 500, replace = FALSE),]
+glimpse(diamants)
+```
+# Anàlisi exploratòria de les dades
+
+```{r,echo = F}
+diamants$price_grup <- cut(diamants$price, breaks = c(0,1000,2500, 5000, 10000, 15000, 20000, Inf),
+                             labels = c("0-1000", "1000-2500","25001-5000", "5001-10000", "10001-15000", "15001-20000", "20001+"))
+```
+
+
+
+## Distribució de les dades en funció del preu
+
+```{r}
+ggplot(data=diamants) + 
+  geom_histogram(binwidth=500, aes(x=price)) + 
+  ggtitle("Distribució dels preus dels diamants") + 
+  xlab("Preu dels diamants") + 
+  ylab("Freqüència") + 
+  theme_minimal()
+```
+## Scater plot 
+```{r, echo = F}
+ggplot(diamants, aes(x = carat, y = price, color = color)) +
+  geom_point() +
+  labs(title = "Scatterplot of Diamond Carat vs Price",
+       x = "Carat",
+       y = "Price")
+```
+
+## Diagrama de violí de les variables "cut" i "carat"
+
+```{r,echo = F}
+mean_values <- diamants %>%
+  group_by(cut) %>%
+  summarize(mean_carat = mean(carat))
+
+ggplot(diamants, aes(x = cut, y = carat, fill = cut)) +
+  geom_violin(alpha = 0.7) +
+  geom_point(data = mean_values, aes(x = cut, y = mean_carat),
+             color = "black", size = 3, shape = 19) +  
+  labs(title = "Violin Plot of Diamond Cut vs Carat",
+       x = "Diamond Cut",
+       y = "Carat") +
+  scale_fill_manual(values = c("#1b9e77", "#d95f02", "#7570b3", "#e7298a", "#66a61e")) +  # Custom color palette
+  theme_minimal()
+```
+
+
+
+
+
+
+
+
+## Matriu de correlació
+
+```{r,echo=FALSE}
+library(ggcorrplot)
+
+diamants %>%
+
+na.omit(.) %>%
+
+select(carat, depth, price,x,y,z) %>%
+
+cor(.) %>%
+
+ggcorrplot(., hc.order = TRUE, type = "lower", colors = c("#6D9EC1","yellow", "#E46726"))
+
+```
+
+
+
+
+
+```{r,echo = F}
+diamants_subset <-  diamants%>% 
+  mutate(cut = as.integer(cut), clarity = as.integer(clarity)) %>% 
+  select(-color,-price_grup)%>% 
+   na.omit()
+```
+
+# Anàlisi de les components principals
+
+```{r,echo = F}
+library(ggplot2)
+library("factoextra")
+dades.acp <- prcomp(diamants_subset, scale = TRUE)
+```
+## Anàlisi de les components principals(1)
+```{r,echo =F}
+lambdas=get_eigenvalue(dades.acp)
+lambdas
+```
+
+
+```{r, echo = F}
+dades.acp$rotation
+```
+## Anàlisi de les components principals(2)
+```{r,echo = F}
+fviz_pca_var(dades.acp, col.var = "contrib",
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE)
+```
+
+
+# Anàlisi de Clustering
+## Estimació del nombre K òptim (1)
+
+```{r,echo = F}
+library(factoextra)
+
+fviz_nbclust(diamants_subset, kmeans, method = "wss")
+```
+## Estimació del nombre K òptim (2)
+```{r,echo = F}
+fviz_nbclust(diamants_subset, kmeans, method = "silhouette")
+```
+## Estimació del nombre K òptim (3)
+```{r,echo = F}
+fviz_nbclust(diamants_subset, kmeans, method = "gap")
+```
+# Clúster particional 
+## K-means clustering
+
+```{r,echo = F}
+set.seed(123)
+diamants_scale <- scale(diamants_subset, center = TRUE, scale = TRUE)
+diamants_cluster <- kmeans(diamants_subset, centers = 2, algorithm = "Lloyd")
+diamants_subset$cluster <- diamants_cluster$cluster
+fviz_cluster(diamants_cluster, data = diamants_subset,geom = "point")
+```
+## K-means clustering
+```{r,echo = F}
+diamants_subset %>% 
+  group_by(cluster) %>% 
+  summarise_all(mean)
+```
+
+
+
+## K-medoids clustering (PAM)
+```{r,echo = F}
+set.seed(123)
+library(cluster)
+pam_clusters <- pam(x = diamants_subset, k = 2, metric = "manhattan") 
+medoids <- prcomp(diamants_subset)$x 
+# Es seleccionen únicament las projeccions de les observacions que son medoids 
+medoids <- medoids[rownames(pam_clusters$medoids), c("PC1", "PC2")] 
+medoids <- as.data.frame(medoids) 
+colnames(medoids) <- c("x", "y")
+fviz_cluster(object = pam_clusters, data = diamants_subset, ellipse.type = "t",  geom = "point", 
+repel = F) + 
+theme_bw() + 
+geom_point(data = medoids, color = "black", size = 2) + 
+theme(legend.position = "none") 
+```
+## K-medoids clustering (PAM)
+
+```{r,echo = F}
+pam_clusters[1]
+```
+
+# Clústers jeràrquics
+
+
+```{r,echo = F}
+#primer seleccionam nomes les variables que ens interessen pel clustering
+dades <- diamants_subset %>%
+  select(-price,-x,-y,-z)
+dades <- scale(dades, center = TRUE, scale = TRUE)
+diss <- dist(dades, method = "manhattan")
+```
+## Dendograma complet
+```{r,echo = F}
+hc_completo <- hclust(d = diss, method = "complete") 
+fviz_dend(x = hc_completo, k = 5, cex = 0.6,
+              main="Dendograma complet") +
+ geom_hline(yintercept = 13, linetype = "dashed")
+```
+```{r,echo = F}
+clusters <- cutree(tree = hc_completo, k = 5) 
+table(clusters, diamants$price_grup, dnn = list("clusters", "preu")) 
+```
+
+
+## Dendograma mitjà
+```{r,echo = F}
+hc_average  <- hclust(d = diss, method = "average") 
+fviz_dend(x = hc_average,  k = 3, cex = 0.6,
+              main="Dendograma mitjà") +
+ geom_hline(yintercept = 8.25, linetype = "dashed")
+```
+```{r,echo = F}
+clusters <- cutree(tree = hc_average, k = 3) 
+table(clusters, diamants$price_grup, dnn = list("clusters", "preu")) 
+```
+## Dendograma single
+```{r,echo = F}
+hc_single   <- hclust(d = diss, method = "single")
+fviz_dend(x = hc_single, k = 2, cex = 0.6, 
+  main="Dendograma single") +
+  geom_hline(yintercept = 4.6, linetype = "dashed")
+```
+
+```{r,echo = F}
+clusters <- cutree(tree = hc_single, k = 2) 
+table(clusters, diamants$price_grup, dnn = list("clusters", "preu")) 
+```
+## Dendograma ward
+```{r,echo = F}
+hc_ward   <- hclust(d = diss, method = "ward")
+fviz_dend(x = hc_ward,  k = 3, cex = 0.6, 
+  main="Dendograma ward") +
+ geom_hline(yintercept = 300, linetype = "dashed")
+```
+
+```{r,echo = F}
+clusters <- cutree(tree = hc_ward, k = 3) 
+table(clusters, diamants$price_grup, dnn = list("clusters", "preu")) 
+```
+## Verificació dels dendogrames
+```{r,echo = T}
+cor(x = diss, cophenetic(hc_completo)) 
+cor(x = diss, cophenetic(hc_average)) 
+cor(x = diss, cophenetic(hc_single)) 
+cor(x = diss, cophenetic(hc_ward)) 
+```
+## Conclusió
+
+- El clúster particional que agrupa millor les dades és el k-means
+- Els clústers jeràrquics que agrupan millor les dades són el complet i mitjà
+- Seria convenient tornar a fer l'estudi reduïnt el conjunt de variables que consideram
+

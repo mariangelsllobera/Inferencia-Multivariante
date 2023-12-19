@@ -195,7 +195,7 @@ També vegem que les variables depth i table tenen una mica de correlació negat
 
 ## Anàlisi de Clustering
 
-### Clúster particional usant l'algorisme de Lloyd
+### Clúster particional 
 
 Primer farem alguns canvis en el data set per poder treballar amb ell. Mutam les variables "cut" i "clarity" a variables del tipus integer.
 
@@ -239,9 +239,17 @@ library(factoextra)
 fviz_nbclust(diamants_subset, kmeans, method = "wss")
 ```
 
+```{r}
+fviz_nbclust(diamants_subset, kmeans, method = "silhouette")
+```
+
+```{r}
+fviz_nbclust(diamants_subset, kmeans, method = "gap")
+```
+
 Pel mètode del colze, concloem que el nombre òptim de clusters és k=2.
 
-#### K-means clustering
+#### K-means clustering(Lloyd)
 
 ```{r}
 set.seed(123)
@@ -330,7 +338,36 @@ fviz_dend(x = hc_average, cex = 0.6,
 ```
 
 ```{r}
+clusters <- cutree(tree = hc_average, k = 5) 
+table(clusters, diamants$price_grup, dnn = list("clusters", "preu")) 
+```
+
+```{r}
 hc_single   <- hclust(d = diss, method = "single")
 fviz_dend(x = hc_single, cex = 0.6, 
   main="Dendograma single") 
+```
+
+```{r}
+clusters <- cutree(tree = hc_single, k = 5) 
+table(clusters, diamants$price_grup, dnn = list("clusters", "preu")) 
+```
+
+```{r}
+hc_ward   <- hclust(d = diss, method = "ward")
+fviz_dend(x = hc_ward, cex = 0.6, 
+  main="Dendograma ward") 
+```
+
+```{r}
+clusters <- cutree(tree = hc_ward, k = 5) 
+table(clusters, diamants$price_grup, dnn = list("clusters", "preu")) 
+```
+
+```{r}
+# Matriz de distancias euclídeas  
+cor(x = diss, cophenetic(hc_completo)) 
+cor(x = diss, cophenetic(hc_average)) 
+cor(x = diss, cophenetic(hc_single)) 
+cor(x = diss, cophenetic(hc_ward)) 
 ```
